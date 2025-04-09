@@ -1,0 +1,12 @@
+﻿@model BlogDetailDto
+
+<h2>@Model.Title</h2>
+
+<p><strong>Kategori:</strong> @Model.CategoryName</p>
+<p><strong>Yazar:</strong> @Model.AuthorName</p>
+<p><strong>Tarih:</strong> @Model.PublishDate.ToShortDateString()</p>
+
+<hr />
+<p>@Model.Content</p>
+
+<a asp-action="Index" class="btn btn-secondary">Geri Dön</a>

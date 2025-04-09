@@ -1,0 +1,26 @@
+﻿# Build
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VSCode
+.vscode/
+
+# Mac & Windows junk
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+appsettings.Development.json
+
+# Logs
+*.log
+
+# Uploaded files (optional)
+wwwroot/uploads/
