@@ -19,6 +19,8 @@ namespace BlogApp.Extensions
 
             services.AddScoped<IBlogRepository, BlogRepository>();
             services.AddScoped<IBlogService, BlogService>();
+            services.AddScoped<IAccountService, AccountService>();
+
 
             //services.AddScoped<ICategoryService, CategoryService>();
             //services.AddScoped<IUserService, UserService>();

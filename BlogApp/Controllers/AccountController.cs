@@ -1,5 +1,6 @@
 ﻿using BlogApp.DTOs.User;
 using BlogApp.Entitiy;
+using BlogApp.Services.Abstract;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,14 +8,12 @@ namespace BlogApp.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly IAccountService _accountService;
 
 
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
+        public AccountController(IAccountService accountService)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            _accountService = accountService;
         }
 
         public IActionResult Register()
@@ -29,29 +28,19 @@ namespace BlogApp.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var user = new User
-            {
-                UserName = model.UserName,
-                Email = model.Email
-            };
+            var (succeeded, errors) = await _accountService.RegisterAsync(model);
 
-            var result = await _userManager.CreateAsync(user, model.Password);
-
-            if (result.Succeeded)
-            {
+            if (succeeded)
                 return RedirectToAction("Login", "Account");
-            }
 
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError("", error.Description);
-            }
+            foreach (var error in errors)
+                ModelState.AddModelError("", error);
 
             return View(model);
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login() 
         {
             return View();
         }
@@ -63,16 +52,10 @@ namespace BlogApp.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var result = await _signInManager.PasswordSignInAsync(
-                model.UserName,
-                model.Password,
-                model.RememberMe,
-                lockoutOnFailure: false);
+            var result = await _accountService.LoginAsync(model);
 
-            if (result.Succeeded)
-            {
+            if (result)
                 return RedirectToAction("Index", "Home");
-            }
 
             ModelState.AddModelError("", "Geçersiz kullanıcı adı veya şifre.");
             return View(model);
@@ -82,7 +65,7 @@ namespace BlogApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
+            await _accountService.LogoutAsync();
             return RedirectToAction("Index", "Home");
         }
     }

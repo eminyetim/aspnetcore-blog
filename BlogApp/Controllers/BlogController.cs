@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿    using AutoMapper;
 using BlogApp.DTOs.Blog;
 using BlogApp.Entitiy;
 using BlogApp.Services.Abstract;
@@ -26,20 +26,25 @@ namespace BlogApp.Controllers
         // GET: Blog
         public async Task<IActionResult> Index()
         {
-            var blogs = await _blogService.GetAllAsync();
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!Guid.TryParse(userIdString, out Guid userId))
+                return Unauthorized();
+
+            var blogs = await _blogService.GetBlogsByUserIdAsync(userId);
             return View(blogs);
         }
 
-        // GET: Blog/Details/5
+        [AllowAnonymous] // Giriş yapmadan da görülebilsin
         public async Task<IActionResult> Details(int id)
         {
-            var blog = await _blogService.GetByIdWithIncludesAsync(id);
+            var blog = await _blogService.GetByIdWithCategoryAndUserAsync(id);
             if (blog == null)
                 return NotFound();
 
-            var dto = _mapper.Map<BlogDetailDto>(blog);
-            return View(dto);
+            return View(blog);
         }
+
 
         [Authorize]
         // GET: Blog/Create
@@ -107,8 +112,16 @@ namespace BlogApp.Controllers
                 return View(dto);
             }
 
-            var updatedBlog = _mapper.Map<Blog>(dto);
-            await _blogService.UpdateAsync(updatedBlog);
+            var blog = await _blogService.GetByIdAsync(dto.Id);
+            if (blog == null) return NotFound();
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (blog.UserId.ToString() != userId)
+                return Forbid(); // Kendi blogu değilse düzenleyemez
+
+            _mapper.Map(dto, blog); // sadece başlık, içerik, kategori güncellenir
+            await _blogService.UpdateAsync(blog);
+
             return RedirectToAction(nameof(Index));
         }
 

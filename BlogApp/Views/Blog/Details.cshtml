@@ -1,12 +1,20 @@
-﻿@model BlogDetailDto
+﻿@model Blog
 
-<h2>@Model.Title</h2>
+@{
+    ViewData["Title"] = Model.Title;
+}
 
-<p><strong>Kategori:</strong> @Model.CategoryName</p>
-<p><strong>Yazar:</strong> @Model.AuthorName</p>
-<p><strong>Tarih:</strong> @Model.PublishDate.ToShortDateString()</p>
+<div class="container my-4">
+    <h2>@Model.Title</h2>
+    <p class="text-muted">
+        Yayın Tarihi: @Model.PublishDate.ToString("dd MMMM yyyy") <br />
+        Kategori: <strong>@Model.Category?.Name</strong> <br />
+        Yazar: <strong>@Model.User?.UserName</strong>
+    </p>
 
-<hr />
-<p>@Model.Content</p>
+    <hr />
 
-<a asp-action="Index" class="btn btn-secondary">Geri Dön</a>
+    <p style="white-space: pre-line;">@Model.Content</p>
+
+    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary mt-4">← Geri Dön</a>
+</div>

@@ -2,6 +2,7 @@
 using BlogApp.DTOs.Category;
 using BlogApp.Entitiy;
 using BlogApp.Services.Abstract;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlogApp.Controllers
@@ -23,11 +24,13 @@ namespace BlogApp.Controllers
             return View(categories);
         }
 
+        [Authorize]
         public IActionResult Create()
         {
             return View();
         }
 
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateCategoryDto dto)
@@ -42,6 +45,7 @@ namespace BlogApp.Controllers
             return View(dto);
         }
 
+        [Authorize]
         public async Task<IActionResult> Edit(int id)
         {
             var category = await _categoryService.GetByIdAsync(id);
@@ -51,6 +55,7 @@ namespace BlogApp.Controllers
             return View(dto);
         }
 
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(UpdateCategoryDto dto)
@@ -63,6 +68,7 @@ namespace BlogApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var category = await _categoryService.GetByIdAsync(id);
@@ -72,6 +78,7 @@ namespace BlogApp.Controllers
             return View(category);
         }
 
+        [Authorize]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

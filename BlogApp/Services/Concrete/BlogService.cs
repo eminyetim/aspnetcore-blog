@@ -19,5 +19,25 @@ namespace BlogApp.Services.Concrete
         {
             return await _blogRepository.GetByIdWithIncludesAsync(id);
         }
+
+        public async Task<IEnumerable<Blog>> GetAllWithCategoryAndUserAsync()
+        {
+            return await _blogRepository.GetAllWithCategoryAndUserAsync();
+        }
+
+        public async Task<Blog> GetByIdWithCategoryAndUserAsync(int id)
+        {
+            return await _blogRepository.GetByIdWithCategoryAndUserAsync(id);
+        }
+        public async Task<IEnumerable<Blog>> GetBlogsByUserIdAsync(Guid userId)
+        {
+            return await _blogRepository.GetBlogsByUserIdAsync(userId);
+        }
+
+        public async Task<List<Blog>> GetBlogsByCategoryIdAsync(int categoryId)
+        {
+            return await _blogRepository.GetBlogsByCategoryIdAsync(categoryId);
+        }
+
     }
 }
