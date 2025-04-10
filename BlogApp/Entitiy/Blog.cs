@@ -16,13 +16,9 @@ namespace BlogApp.Entitiy
 
         public string? ImagePath { get; set; }
 
-
-        // Foreign Key - User
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
         public User User { get; set; }
 
-
-        // Foreign Key - Category
         public int CategoryId { get; set; }
         public Category Category { get; set; }
 

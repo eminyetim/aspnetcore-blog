@@ -3,8 +3,10 @@ using BlogApp.DTOs.Blog;
 using BlogApp.Entitiy;
 using BlogApp.Services.Abstract;
 using BlogApp.Services.Concrete;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
 
 namespace BlogApp.Controllers
 {
@@ -39,37 +41,45 @@ namespace BlogApp.Controllers
             return View(dto);
         }
 
-
+        [Authorize]
         // GET: Blog/Create
         public async Task<IActionResult> Create()
         {
             var categories = await _categoryService.GetAllAsync();
             ViewBag.Categories = new SelectList(categories, "Id", "Name");
-
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userIdString, out Guid userId))
+            {
+                // Eğer ID alınamazsa, hata döndür
+                return Unauthorized();
+            }
+            ViewBag.UserId = userIdString;
             return View();
         }
 
 
         // POST: Blog/Create
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateBlogDto dto)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                dto.UserId = 1; // Şimdilik sabit kullanıcı
-                var blog = _mapper.Map<Blog>(dto);
-                await _blogService.AddAsync(blog);
-                return RedirectToAction(nameof(Index));
+                var categories = await _categoryService.GetAllAsync();
+                ViewBag.Categories = new SelectList(categories, "Id", "Name");
+                return View(dto);
             }
 
-            var categories = await _categoryService.GetAllAsync();
-            ViewBag.Categories = new SelectList(categories, "Id", "Name");
-            return View(dto);
+            var blog = _mapper.Map<Blog>(dto);
+
+            await _blogService.AddAsync(blog);
+            return RedirectToAction(nameof(Index));
         }
 
 
         // GET: Blog/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int id)
         {
             var blog = await _blogService.GetByIdAsync(id);
@@ -85,6 +95,7 @@ namespace BlogApp.Controllers
 
 
         // POST: Blog/Edit/5
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(UpdateBlogDto dto)
@@ -103,6 +114,7 @@ namespace BlogApp.Controllers
 
 
         // GET: Blog/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var blog = await _blogService.GetByIdAsync(id);
@@ -112,6 +124,7 @@ namespace BlogApp.Controllers
         }
 
         // POST: Blog/Delete/5
+        [Authorize]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
