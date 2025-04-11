@@ -18,6 +18,7 @@ namespace BlogApp.Controllers
             _mapper = mapper;
         }
 
+        [Authorize]
         public async Task<IActionResult> Index()
         {
             var categories = await _categoryService.GetAllAsync();

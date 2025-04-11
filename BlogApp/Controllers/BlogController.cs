@@ -14,92 +14,78 @@ namespace BlogApp.Controllers
     {
         private readonly IBlogService _blogService;
         private readonly ICategoryService _categoryService;
+        private readonly IAccountService _userService;
         private readonly IMapper _mapper;
 
-        public BlogController(IBlogService blogService, ICategoryService categoryService, IMapper mapper)
+        public BlogController(IBlogService blogService, ICategoryService categoryService, IAccountService userService, IMapper mapper)
         {
             _blogService = blogService;
             _categoryService = categoryService;
+            _userService = userService;
             _mapper = mapper;
         }
 
-        // GET: Blog
+        [Authorize]
         public async Task<IActionResult> Index()
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!Guid.TryParse(userIdString, out Guid userId))
-                return Unauthorized();
+            var userId = _userService.GetUserId(User);
+            if (userId == Guid.Empty) return Unauthorized();
 
             var blogs = await _blogService.GetBlogsByUserIdAsync(userId);
             return View(blogs);
         }
 
-        [AllowAnonymous] // Giriş yapmadan da görülebilsin
+        [AllowAnonymous]
         public async Task<IActionResult> Details(int id)
         {
             var blog = await _blogService.GetByIdWithCategoryAndUserAsync(id);
-            if (blog == null)
-                return NotFound();
-
-            return View(blog);
+            return blog == null ? NotFound() : View(blog);
         }
 
-
         [Authorize]
-        // GET: Blog/Create
         public async Task<IActionResult> Create()
         {
-            var categories = await _categoryService.GetAllAsync();
-            ViewBag.Categories = new SelectList(categories, "Id", "Name");
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!Guid.TryParse(userIdString, out Guid userId))
-            {
-                // Eğer ID alınamazsa, hata döndür
-                return Unauthorized();
-            }
-            ViewBag.UserId = userIdString;
+            ViewBag.Categories = await _categoryService.GetCategorySelectListAsync();
             return View();
         }
 
-
-        // POST: Blog/Create
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateBlogDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                var categories = await _categoryService.GetAllAsync();
-                ViewBag.Categories = new SelectList(categories, "Id", "Name");
-                return View(dto);
-            }
+
+            var userId = _userService.GetUserId(User);
+            if (userId == Guid.Empty) return Unauthorized();
 
             var blog = _mapper.Map<Blog>(dto);
+            blog.UserId = userId;
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Categories = await _categoryService.GetCategorySelectListAsync();
+                return View(dto);
+            }
 
             await _blogService.AddAsync(blog);
             return RedirectToAction(nameof(Index));
         }
 
-
-        // GET: Blog/Edit/5
         [Authorize]
         public async Task<IActionResult> Edit(int id)
         {
             var blog = await _blogService.GetByIdAsync(id);
             if (blog == null) return NotFound();
 
-            var dto = _mapper.Map<UpdateBlogDto>(blog);
+            var userId = _userService.GetUserId(User);
+            if (blog.UserId != userId) return Forbid();
 
-            var categories = await _categoryService.GetAllAsync();
-            ViewBag.Categories = new SelectList(categories, "Id", "Name", blog.CategoryId);
+            var dto = _mapper.Map<UpdateBlogDto>(blog);
+            ViewBag.Categories = await _categoryService.GetCategorySelectListAsync(blog.CategoryId);
 
             return View(dto);
         }
 
-
-        // POST: Blog/Edit/5
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -107,41 +93,42 @@ namespace BlogApp.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var categories = await _categoryService.GetAllAsync();
-                ViewBag.Categories = new SelectList(categories, "Id", "Name", dto.CategoryId);
+                ViewBag.Categories = await _categoryService.GetCategorySelectListAsync(dto.CategoryId);
                 return View(dto);
             }
 
             var blog = await _blogService.GetByIdAsync(dto.Id);
             if (blog == null) return NotFound();
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (blog.UserId.ToString() != userId)
-                return Forbid(); // Kendi blogu değilse düzenleyemez
+            var userId = _userService.GetUserId(User);
+            if (blog.UserId != userId) return Forbid();
 
-            _mapper.Map(dto, blog); // sadece başlık, içerik, kategori güncellenir
+            _mapper.Map(dto, blog);
             await _blogService.UpdateAsync(blog);
 
             return RedirectToAction(nameof(Index));
         }
 
-
-        // GET: Blog/Delete/5
         [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var blog = await _blogService.GetByIdAsync(id);
-            if (blog == null)
-                return NotFound();
+            if (blog == null) return NotFound();
+
+            var userId = _userService.GetUserId(User);
+            if (blog.UserId != userId) return Forbid();
+
             return View(blog);
         }
 
-        // POST: Blog/Delete/5
-        [Authorize]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var blog = await _blogService.GetByIdAsync(id);
+            var userId = _userService.GetUserId(User);
+            if (blog == null || blog.UserId != userId) return Forbid();
+
             await _blogService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }

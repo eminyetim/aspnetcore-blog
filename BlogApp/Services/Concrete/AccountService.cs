@@ -2,6 +2,7 @@
 using BlogApp.Entitiy;
 using BlogApp.Services.Abstract;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace BlogApp.Services.Concrete
 {
@@ -39,6 +40,12 @@ namespace BlogApp.Services.Concrete
         public async Task LogoutAsync()
         {
             await _signInManager.SignOutAsync();
+        }
+
+        public Guid GetUserId(ClaimsPrincipal user)
+        {
+            var userIdString = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Guid.TryParse(userIdString, out var userId) ? userId : Guid.Empty;
         }
     }
 }
