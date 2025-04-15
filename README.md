@@ -65,7 +65,7 @@ Bu blog platformu, **Doğuş Teknoloji Bootcamp** kapsamında geliştirilen bir 
 | ✅ Global `ExceptionMiddleware` yazıldı | Tüm hatalar yakalanıp kullanıcı dostu hale getirildi |
 | ✅ Hatalar `Logs/error-log.txt` dosyasına yazıldı | `LogHelper` sınıfı ile hata logları oluşturuldu |
 | ✅ Layout düzenlendi, sticky footer sorunu çözüldü | Flexbox yapısı kullanılarak footer sorunsuz hale getirildi |
-| ✅ Kullanıcı sadece kendi bloglarını görebiliyor | `[Authorize]` ve UserId kontrolü ile güvenlik sağlandı |
+| ✅ Kullanıcı sadece kendi bloglarını düzenliyebilir | `[Authorize]` ve UserId kontrolü ile güvenlik sağlandı |
 | ✅ Servis katmanları sadeleştirildi, kodlar refactor edildi | `GetUserId`, `GetCategorySelectListAsync` gibi yardımcı metodlar eklendi |
 | ✅ Gelişmiş `README.md` eklendi | Tüm proje adımları ve açıklamaları bu dosyada yazıldı |
 
